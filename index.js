@@ -58,7 +58,7 @@ S3Adapter.prototype.createBucket = function() {
 S3Adapter.prototype.createFile = function(filename, data, contentType) {
   let params = {
     Key: this._bucketPrefix + filename,
-    Body: data
+    Expires: 60 * 60 // 60 minutes in seconds until the presigned url expires
   };
   if (this._directAccess) {
     params.ACL = "public-read"
@@ -71,7 +71,7 @@ S3Adapter.prototype.createFile = function(filename, data, contentType) {
   }
   return this.createBucket().then(() => {
     return new Promise((resolve, reject) => {
-      this._s3Client.upload(params, (err, data) => {
+      this._s3Client.getSignedUrl('putObject', params, (err, data) => {
         if (err !== null) {
           return reject(err);
         }
